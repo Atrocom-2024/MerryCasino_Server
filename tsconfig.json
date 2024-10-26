@@ -6,8 +6,10 @@
     "rootDir": ".",                    // 루트에서 소스 파일 시작
     "strict": true,                    // 엄격한 타입 검사
     "esModuleInterop": true,           // ES 모듈과 호환
-    "skipLibCheck": true               // 라이브러리 타입 체크 무시
+    "skipLibCheck": true,              // 라이브러리 타입 체크 무시
+    "experimentalDecorators": true,    // 데코레이터 기능 활성화
+    "emitDecoratorMetadata": true      // 런타임에 데코레이터 메타데이터를 생성
   },
-  "include": ["**/*.ts"],               // 포함할 파일들
-  "exclude": ["node_modules"]           // 제외할 파일들
+  "include": ["**/*.ts"],              // 포함할 파일들
+  "exclude": ["node_modules"]          // 제외할 파일들
 }

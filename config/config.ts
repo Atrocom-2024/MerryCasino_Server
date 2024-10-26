@@ -4,6 +4,10 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 export const config = {
-  port: process.env.PORT || 3000,
-  dbUri: process.env.DB_URI,
+  Server_Port: parseInt(process.env.SERVER_PORT || '3000'),
+  DB_host: process.env.DB_HOST,
+  DB_port: parseInt(process.env.DB_PORT || '3306', 10),
+  DB_username: process.env.DB_USERNAME,
+  DB_password: process.env.DB_PASSWORD,
+  DB_database: process.env.DB_DATABASE
 }
