@@ -1,13 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
+import { Entity, PrimaryColumn, Column } from "typeorm";
 
-@Entity()
+@Entity('player_tb')
 export class Player {
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @PrimaryColumn()
+  id!: string;
 
   @Column()
   username!: string;
 
-  @Column({ default: 1000 })
-  coins!: number;
+  @Column({ default: 0 })
+  coin!: number;
 }
