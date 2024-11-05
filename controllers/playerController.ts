@@ -72,7 +72,6 @@ export const updatePlayer = async (req: Request, res: Response) => {
   }
 
   const updatedFields: Partial<UpdatePlayerFields> = {}; // 변경된 필드를 추적할 객체
-
   // 요청 바디에 포함된 항목을 선택적으로 업데이트
   if (req.body.username) {
     // username 중복 체크
