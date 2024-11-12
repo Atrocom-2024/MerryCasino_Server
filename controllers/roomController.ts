@@ -5,6 +5,8 @@ const roomList = getRoomList(); // 또는 외부에서 import하는 방식으로
 
 // 특정 room의 returnEventValue 조회
 export const getPayoutReturn = (req: Request, res: Response) => {
+  console.log("특정 room payout return 조회");
+
   const roomNumber = parseInt(req.params.roomNumber, 10);
 
   if (!roomList[roomNumber]) {
@@ -18,6 +20,8 @@ export const getPayoutReturn = (req: Request, res: Response) => {
 
 // 특정 room의 resultplusPercent 조회
 export const getPayout = (req: Request, res: Response) => {
+  console.log("특정 room payout 조회");
+
   const roomNumber = parseInt(req.params.roomNumber, 10);
 
   if (!roomList[roomNumber]) {
@@ -25,12 +29,17 @@ export const getPayout = (req: Request, res: Response) => {
     return;
   }
 
+  // res.status(200).json({
+  //   resultPayout: roomList[roomNumber].resultplusPercent
+  // });
   res.send(roomList[roomNumber].resultplusPercent.toString());
   return;
 };
 
 // 특정 room의 totalPayout 갱신
 export const updateWin = (req: Request, res: Response) => {
+  console.log("특정 room totalPayout 설정 요청");
+
   const roomNumber = parseInt(req.params.roomNumber, 10);
   const betCoin = parseFloat(req.body.betCoin);
 
@@ -46,6 +55,8 @@ export const updateWin = (req: Request, res: Response) => {
 
 // 특정 room의 totalBet 갱신
 export const updateBet = (req: Request, res: Response) => {
+  console.log("특정 room totalBet 설정 요청");
+
   const roomNumber = parseInt(req.params.roomNumber, 10);
   const betCoin = parseFloat(req.body.betCoin);
 
@@ -61,6 +72,8 @@ export const updateBet = (req: Request, res: Response) => {
 
 // 특정 room의 targetPayout 조회
 export const getTargetPayout = (req: Request, res: Response) => {
+  console.log("특정 room targetPayout 조회");
+  
   const roomNumber = parseInt(req.params.roomNumber, 10);
 
   if (!roomList[roomNumber]) {

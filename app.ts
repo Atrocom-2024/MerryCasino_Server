@@ -5,6 +5,7 @@ import { MyDataSource } from './config/data-source';
 import playerRoutes from './routes/playerRoutes';
 import { config } from './config/config';
 import { readlocalJson, startRoomUpdates } from './services/roomService';
+import roomRoutes from './routes/roomRoutes';
 
 const app = express();
 app.use(express.json());
@@ -22,7 +23,8 @@ const startServer = async () => {
     startRoomUpdates(); // 서버가 요청을 받기 전에 실행
 
     // 라우트 설정
-    app.use('/api', playerRoutes);
+    app.use('/api/players', playerRoutes);
+    app.use('/api/rooms', roomRoutes);
 
     // 서버 시작
     app.listen(config.Server_Port, () => {
