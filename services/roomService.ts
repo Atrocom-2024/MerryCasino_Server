@@ -1,5 +1,7 @@
 import { readFile } from "fs";
 
+import { RoomTypes } from "../types/roomInfo";
+
 const modifyValueFilePath = 'data/modifyValue.json';
 const roomList: RoomTypes[] = [];
 

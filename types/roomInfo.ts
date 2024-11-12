@@ -1,4 +1,4 @@
-interface RoomTypes {
+export interface RoomTypes {
   spandTime: number;
   sum: number;
   resultplusPercent: number;
