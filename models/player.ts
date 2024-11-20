@@ -1,6 +1,6 @@
 import { Entity, PrimaryColumn, Column, CreateDateColumn } from "typeorm";
 
-@Entity('player_tb')
+@Entity('TB_PLAYER')
 export class Player {
   @PrimaryColumn()
   id!: string;
