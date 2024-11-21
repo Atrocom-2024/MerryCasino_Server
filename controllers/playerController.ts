@@ -8,7 +8,7 @@ import { isUsernameTaken } from '../services/playerService';
 // 새로운 플레이어 생성
 export const createPlayer = async (req: Request, res: Response) => {
   console.log('플레이어 생성 요청 들어옴');
-
+  console.log(req.body);
   // 중복되지 않는 username을 찾을 때까지 반복
   let username: string;
   do {
@@ -17,9 +17,9 @@ export const createPlayer = async (req: Request, res: Response) => {
 
   const playerRepository = MyDataSource.getRepository(Player);
   const newPlayer = new Player(); // 새 엔티티 인스턴스 생성
-  newPlayer.id = req.body.ID;
+  newPlayer.id = req.body.id;
   newPlayer.username = username;
-  newPlayer.coins = req.body.COIN || 0;
+  newPlayer.coins = req.body.coins || 0;
   newPlayer.provider = 'guest';
 
   await playerRepository.save(newPlayer); // 저장
@@ -27,7 +27,7 @@ export const createPlayer = async (req: Request, res: Response) => {
   return;
 };
 
-// 플레이어 정보 가져오기
+// 플레이어 정보 가져오기 -> 보안 설정 필요
 export const getPlayer = async (req: Request, res: Response) => {
   console.log('플레이어 정보 요청 들어옴');
 
@@ -45,7 +45,7 @@ export const getPlayer = async (req: Request, res: Response) => {
   return;
 };
 
-// 플레이어 정보 수정
+// 플레이어 정보 수정 -> 보안 설정 필요
 export const updatePlayer = async (req: Request, res: Response) => {
   console.log('플레이어 정보 수정 요청 들어옴');
 

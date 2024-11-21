@@ -48,25 +48,8 @@ export const getTargetPayout = (req: Request, res: Response) => {
   return;
 };
 
-// 특정 room의 totalPayout 갱신
-export const updateWin = (req: Request, res: Response) => {
-  console.log("특정 room totalPayout 설정 요청");
-
-  const roomNumber = parseInt(req.params.roomNumber, 10);
-  const betCoin = parseFloat(req.body.betCoin);
-
-  if (!roomList[roomNumber]) {
-    res.status(404).send('Room not found');
-    return;
-  }
-
-  roomList[roomNumber].totalPayout += betCoin;
-  res.send(`Total payout updated for room ${roomNumber}`);
-  return;
-};
-
 // 특정 room의 totalBet 갱신
-export const updateBet = (req: Request, res: Response) => {
+export const updateTotalBet = (req: Request, res: Response) => {
   console.log("특정 room totalBet 설정 요청");
 
   const roomNumber = parseInt(req.params.roomNumber, 10);
@@ -79,5 +62,22 @@ export const updateBet = (req: Request, res: Response) => {
 
   roomList[roomNumber].totalBet += betCoin;
   res.send(`Total bet updated for room ${roomNumber}`);
+  return;
+};
+
+// 특정 room의 totalPayout 갱신
+export const updateTotalPayout = (req: Request, res: Response) => {
+  console.log("특정 room totalPayout 설정 요청");
+  
+  const roomNumber = parseInt(req.params.roomNumber, 10);
+  const betCoin = parseFloat(req.body.betCoin);
+
+  if (!roomList[roomNumber]) {
+    res.status(404).send('Room not found');
+    return;
+  }
+
+  roomList[roomNumber].totalPayout += betCoin;
+  res.send(`Total payout updated for room ${roomNumber}`);
   return;
 };
