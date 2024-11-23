@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
 
-import { MyDataSource } from '../config/data-source';
-import { Player } from '../models/player';
-import { generateRandomUsername } from '../utils/randomUtils';
+import { MyDataSource } from '../../config/data-source';
+import { Player } from '../../models/player';
+import { generateRandomUsername } from '../../utils/randomUtils';
 import { isUsernameTaken } from '../services/playerService';
 
 // 새로운 플레이어 생성

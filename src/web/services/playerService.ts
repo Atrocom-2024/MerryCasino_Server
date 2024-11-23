@@ -1,5 +1,5 @@
-import { MyDataSource } from '../config/data-source';
-import { Player } from '../models/player';
+import { MyDataSource } from "../../config/data-source";
+import { Player } from "../../models/player";
 
 // username 중복 여부 확인
 export async function isUsernameTaken(username: string): Promise<boolean> {

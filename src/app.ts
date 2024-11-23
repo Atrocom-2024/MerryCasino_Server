@@ -4,11 +4,11 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 
 import { MyDataSource } from './config/data-source';
-import playerRoutes from './routes/playerRoutes';
 import { config } from './config/config';
-import { readlocalJson, startRoomUpdates } from './services/roomService';
-import roomRoutes from './routes/roomRoutes';
-import { socketController } from './controllers/socketController';
+import playerRoutes from './web/routes/playerRoutes';
+import { readlocalJson, startRoomUpdates } from './web/services/roomService';
+import roomRoutes from './web/routes/roomRoutes';
+import { socketServer } from './socket/socketServer';
 
 const app = express();
 app.use(express.json());
@@ -40,7 +40,7 @@ const startServer = async () => {
     app.use('/api/rooms', roomRoutes);
 
     // Socket.IO 컨트롤러 설정 - 데이터베이스 초기화 후에 실행
-    socketController(io);
+    socketServer(io);
 
     // 서버 시작
     httpServer.listen(config.Server_Port, () => {

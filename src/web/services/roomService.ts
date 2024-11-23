@@ -2,7 +2,7 @@ import { readFile } from "fs";
 
 import { RoomTypes } from "../types/roomInfo";
 
-const modifyValueFilePath = 'data/modifyValue.json';
+const modifyValueFilePath = 'src/data/modifyValue.json';
 const roomList: RoomTypes[] = [];
 
 // 수정 가능한 Value들
