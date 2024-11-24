@@ -18,7 +18,7 @@ export const createPlayer = async (req: Request, res: Response) => {
   const playerRepository = MyDataSource.getRepository(Player);
   const newPlayer = new Player(); // 새 엔티티 인스턴스 생성
   newPlayer.id = req.body.id;
-  newPlayer.username = username;
+  newPlayer.userName = username;
   newPlayer.coins = req.body.coins || 0;
   newPlayer.provider = 'guest';
 
@@ -79,7 +79,7 @@ export const updatePlayer = async (req: Request, res: Response) => {
       res.status(400).json({ message: 'Username is already taken' });
       return;
     }
-    player.username = req.body.username;
+    player.userName = req.body.username;
     updatedFields.username = req.body.username; // 변경 필드 추가
   }
 

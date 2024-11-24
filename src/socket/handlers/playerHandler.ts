@@ -14,7 +14,7 @@ interface PlayerFields {
 // 리팩토링 필요 -> 클라이언트 동시에
 export const addCoinsHandler = async (socket: Socket, data: PlayerFields) => {
   console.log("플레이어 코인 추가 요청 들어옴");
-  console.log(data);
+
   if (!data.playerId || typeof data.coins !== "number") {
     socket.emit("addCoinsResponse", {
       status: 400,
@@ -93,7 +93,7 @@ export const updatePlayerHandler = async (socket: Socket, data: PlayerFields) =>
     const updatedFields: Partial<PlayerFields> = {};
 
     if (data.username) {
-      const isUsernameTaken = await playerRepository.findOneBy({ username: data.username });
+      const isUsernameTaken = await playerRepository.findOneBy({ userName: data.username });
       if (isUsernameTaken) {
         socket.emit("updatePlayerResponse", {
           status: 400,
@@ -101,7 +101,7 @@ export const updatePlayerHandler = async (socket: Socket, data: PlayerFields) =>
         });
         return;
       }
-      player.username = data.username;
+      player.userName = data.username;
       updatedFields.username = data.username;
     }
 

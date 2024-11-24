@@ -1,25 +1,28 @@
-import { Entity, PrimaryColumn, Column } from "typeorm";
+import { Entity, PrimaryColumn, Column, UpdateDateColumn } from "typeorm";
 
 @Entity('tb_room')
 export class Room {
-  @PrimaryColumn()
-  room_id!: number;
+  @PrimaryColumn({ name: 'room_id' })
+  roomId!: number;
 
-  @Column()
-  current_payout!: number;
+  @Column({ name: 'current_payout' })
+  currentPayout!: number;
 
-  @Column()
-  target_payout!: number;
+  @Column({ name: 'target_payout' })
+  targetPayout!: number;
 
-  @Column()
-  total_bet!: number;
+  @Column({ name: 'total_bet' })
+  totalBet!: number;
 
-  @Column()
-  total_user!: number;
+  @Column({ name: 'total_user' })
+  totalUser!: number;
 
-  @Column()
-  max_bet!: number;
+  @Column({ name: 'max_bet' })
+  maxBet!: number;
 
-  @Column()
-  max_user!: number;
+  @Column({ name: 'max_user' })
+  maxUser!: number;
+
+  @UpdateDateColumn({ name: 'update_at' })
+  updateAt!: Date; // 배팅 시간
 }
