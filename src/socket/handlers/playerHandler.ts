@@ -11,6 +11,50 @@ interface PlayerFields {
   experience?: number;
 }
 
+// 리팩토링 필요
+export const addCoinsHandler = async (socket: Socket, data: PlayerFields) => {
+  console.log("플레이어 코인 추가 요청 들어옴");
+  console.log(data);
+  if (!data.playerId || typeof data.coins !== "number") {
+    socket.emit("addCoinsResponse", {
+      status: 400,
+      message: "Invalid playerId or coins value in request body",
+    });
+    return;
+  }
+
+  try {
+    const playerRepository = MyDataSource.getRepository(Player);
+    const player = await playerRepository.findOneBy({ id: data.playerId });
+
+    if (!player) {
+      socket.emit("addCoinsResponse", {
+        status: 404,
+        message: "Player not found",
+      });
+      return;
+    }
+
+    // Add coins to the player's current coins
+    player.coins += data.coins;
+
+    // Save the updated player data
+    await playerRepository.save(player);
+
+    socket.emit("addCoinsResponse", {
+      status: 200,
+      message: `Successfully added ${data.coins} coins to player.`,
+      updatedCoins: player.coins,
+    });
+  } catch (error) {
+    console.error("Error adding coins to player:", error);
+    socket.emit("addCoinsResponse", {
+      status: 500,
+      message: "An error occurred while adding coins to the player.",
+    });
+  }
+};
+
 export const updatePlayerHandler = async (socket: Socket, data: PlayerFields) => {
   console.log("플레이어 정보 수정 요청 들어옴");
 

@@ -8,7 +8,7 @@ import { isUsernameTaken } from '../services/playerService';
 // 새로운 플레이어 생성
 export const createPlayer = async (req: Request, res: Response) => {
   console.log('플레이어 생성 요청 들어옴');
-  console.log(req.body);
+
   // 중복되지 않는 username을 찾을 때까지 반복
   let username: string;
   do {

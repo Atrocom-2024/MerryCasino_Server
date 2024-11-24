@@ -2,13 +2,6 @@ import { Socket } from "socket.io";
 
 import { getRoomList } from "../../web/services/roomService";
 
-interface Room {
-  resultplusPercent: number;
-  targetPayout: number;
-  totalBet: number;
-  totalPayout: number;
-}
-
 const roomList = getRoomList();
 
 export const getPayoutHandler = (socket: Socket, roomNumber: number) => {
