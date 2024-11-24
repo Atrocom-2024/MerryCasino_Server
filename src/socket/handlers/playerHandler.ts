@@ -11,7 +11,7 @@ interface PlayerFields {
   experience?: number;
 }
 
-// 리팩토링 필요
+// 리팩토링 필요 -> 클라이언트 동시에
 export const addCoinsHandler = async (socket: Socket, data: PlayerFields) => {
   console.log("플레이어 코인 추가 요청 들어옴");
   console.log(data);
