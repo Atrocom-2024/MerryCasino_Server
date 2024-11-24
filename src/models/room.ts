@@ -23,6 +23,6 @@ export class Room {
   @Column({ name: 'max_user' })
   maxUser!: number;
 
-  @UpdateDateColumn({ name: 'update_at' })
-  updateAt!: Date; // 배팅 시간
+  @UpdateDateColumn({ name: 'updated_at', type:'timestamp' })
+  updatedAt!: Date; // 배팅 시간
 }
