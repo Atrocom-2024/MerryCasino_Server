@@ -1,51 +1,98 @@
 import { Socket } from "socket.io";
 
-import { getRoomList } from "../../web/services/roomService";
+import { MyDataSource } from "../../config/data-source";
+import { Player } from "../../models/player";
+import { calcPayout } from "../services/roomService";
+import { Room } from "../../models/room";
 
-const roomList = getRoomList();
+export const getRoomInfoHandler = async (socket: Socket, data: GetRoomFields) => {
+  console.log("룸 정보 요청 들어옴");
 
-export const getPayoutHandler = (socket: Socket, roomNumber: number) => {
-  console.log(`Fetching payout for room ${roomNumber}`);
-
-  if (!roomList[roomNumber]) {
-    socket.emit("getPayoutResponse", { error: "Room not found" });
+  if (!data.roomId && data.roomId != 0) {
+    socket.emit("getRoomInfoResponse", {
+      status: 400,
+      message: "Invalid roomId value in request body",
+    });
     return;
   }
 
-  socket.emit("getPayoutResponse", { resultplusPercent: roomList[roomNumber].resultplusPercent });
-};
+  try {
+    const roomRepository = MyDataSource.getRepository(Room);
+    const roomInfo = await roomRepository.findOneBy({ roomId: data.roomId });
 
-export const getTargetPayoutHandler = (socket: Socket, roomNumber: number) => {
-  console.log(`Fetching target payout for room ${roomNumber}`);
+    if (!roomInfo) {
+      socket.emit("getRoomInfoResponse", {
+        status: 404,
+        message: "Room not fount"
+      });
+      return;
+    }
 
-  if (!roomList[roomNumber]) {
-    socket.emit("getTargetPayoutResponse", { error: "Room not found" });
+    socket.emit("getRoomInfoResponse", {
+      status: 200,
+      message: `Successfully fetched ${data.roomId} room info.`,
+      roomInfo
+    });
+  } catch (error) {
+    console.error("Error fetch room info:", error);
+    socket.emit("getRoomInfoResponse", {
+      status: 500,
+      message: "An error occurred while fetching room info.",
+    });
+  }
+}
+
+export const updateBetHadnler = async (socket: Socket, data: UpdateBetFields) => {
+  console.log("배팅 요청 들어옴");
+
+  if (!data.playerId || !data.roomId || !data.betAmount) {
+    socket.emit("updateBetResponse", {
+      status: 400,
+      message: "Invalid playerId or coins value in request body",
+    });
     return;
   }
 
-  socket.emit("getTargetPayoutResponse", { targetPayout: roomList[roomNumber].targetPayout });
-};
+  try {
+    const playerRepository = MyDataSource.getRepository(Player);
+    const player = await playerRepository.findOneBy({ id: data.playerId });
 
-export const updateTotalBetHandler = (socket: Socket, data: { roomNumber: number; betCoin: number }) => {
-  console.log(`Updating total bet for room ${data.roomNumber}`);
+    if (!player) {
+      socket.emit("updateBetResponse", {
+        status: 404,
+        message: "Player not found",
+      });
+      return;
+    }
 
-  if (!roomList[data.roomNumber]) {
-    socket.emit("updateTotalBet", { error: "Room not found" });
-    return;
+    player.coins += data.betAmount;
+    const updatedPayout = await calcPayout(data.roomId);
+    console.log(`현재 ${data.roomId}번 방의 payout: ${updatedPayout}`);
+
+    // Save the updated player data
+    await playerRepository.save(player);
+
+    socket.emit("updateBetResponse", {
+      status: 200,
+      message: `Successfully updated ${data.betAmount} coins to player.`,
+      updatedCoins: player.coins,
+      updatedPayout: updatedPayout
+    });
+  } catch (error) {
+    console.error("Error update coins to player:", error);
+    socket.emit("updateBetResponse", {
+      status: 500,
+      message: "An error occurred while adding coins to the player.",
+    });
   }
+}
 
-  roomList[data.roomNumber].totalBet += data.betCoin;
-  socket.emit("updateTotalBet", { success: true, totalBet: roomList[data.roomNumber].totalBet });
-};
+interface GetRoomFields {
+  roomId: number;
+}
 
-export const updateTotalPayoutHandler = (socket: Socket, data: { roomNumber: number; payoutCoin: number }) => {
-  console.log(`Updating total payout for room ${data.roomNumber}`);
-
-  if (!roomList[data.roomNumber]) {
-    socket.emit("updateTotalPayout", { error: "Room not found" });
-    return;
-  }
-
-  roomList[data.roomNumber].totalPayout += data.payoutCoin;
-  socket.emit("updateTotalPayout", { success: true, totalPayout: roomList[data.roomNumber].totalPayout });
-};
+interface UpdateBetFields {
+  playerId: string;
+  roomId: number;
+  betAmount: number;
+}
