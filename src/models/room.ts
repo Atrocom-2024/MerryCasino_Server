@@ -5,9 +5,6 @@ export class Room {
   @PrimaryColumn({ name: 'room_id' })
   roomId!: number;
 
-  @Column({ name: 'current_payout' })
-  currentPayout!: number;
-
   @Column({ name: 'target_payout' })
   targetPayout!: number;
 

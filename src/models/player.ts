@@ -1,5 +1,5 @@
 import { Entity, PrimaryColumn, Column, CreateDateColumn, OneToMany } from "typeorm";
-import { BetRecord } from "./bet_record";
+import { RoomPlayer } from "./roomPlayer";
 
 @Entity('tb_player')
 export class Player {
@@ -24,6 +24,6 @@ export class Player {
   @CreateDateColumn({ type:'timestamp' })
   create_at!: Date;
 
-  @OneToMany(() => BetRecord, (betRecord) => betRecord.player)
-  bet_record!: BetRecord[];
+  @OneToMany(() => RoomPlayer, (roomPlayer) => roomPlayer.player)
+  roomPlayer!: RoomPlayer[];
 }
