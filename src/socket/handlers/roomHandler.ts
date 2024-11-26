@@ -5,8 +5,50 @@ import { Player } from "../../models/player";
 import { calcPayout } from "../services/roomService";
 import { Room } from "../../models/room";
 
+export const joinRoomHandler = async (socket: Socket, data: JoinRoomFields) => {
+  console.log("[socket] 룸 조인");
+
+  if (!data.roomId && data.roomId != 0) {
+    socket.emit("joinRoomResponse", {
+      status: 400,
+      message: "Invalid roomId value in request body",
+    });
+    return;
+  }
+
+  try {
+    const roomRepository = MyDataSource.getRepository(Room);
+    const roomInfo = await roomRepository.findOneBy({ roomId: data.roomId });
+
+    if (!roomInfo) {
+      socket.emit("joinRoomResponse", {
+        status: 404,
+        message: "Room not fount"
+      });
+      return;
+    }
+
+    roomInfo.totalUser += 1;
+
+    // Save the updated player data
+    await roomRepository.save(roomInfo);
+
+    socket.emit("joinRoomResponse", {
+      status: 200,
+      message: `Successfully joined ${data.roomId}.`,
+      roomInfo
+    });
+  } catch (error) {
+    console.error("Error fetch room info:", error);
+    socket.emit("joinRoomResponse", {
+      status: 500,
+      message: "An error occurred while join room.",
+    });
+  }
+}
+
 export const getRoomInfoHandler = async (socket: Socket, data: GetRoomFields) => {
-  console.log("룸 정보 요청 들어옴");
+  console.log("[socket] 룸 정보 요청");
 
   if (!data.roomId && data.roomId != 0) {
     socket.emit("getRoomInfoResponse", {
@@ -43,7 +85,7 @@ export const getRoomInfoHandler = async (socket: Socket, data: GetRoomFields) =>
 }
 
 export const updateBetHadnler = async (socket: Socket, data: UpdateBetFields) => {
-  console.log("배팅 요청 들어옴");
+  console.log("[socket] 배팅 요청");
 
   if (!data.playerId || !data.roomId || !data.betAmount) {
     socket.emit("updateBetResponse", {
@@ -85,6 +127,11 @@ export const updateBetHadnler = async (socket: Socket, data: UpdateBetFields) =>
       message: "An error occurred while adding coins to the player.",
     });
   }
+}
+
+interface JoinRoomFields {
+  roomId: number;
+  userId: string;
 }
 
 interface GetRoomFields {

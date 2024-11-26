@@ -2,7 +2,7 @@ import { Server, Socket } from "socket.io";
 
 import { connectionHandler, disconnectionHandler } from "./handlers/connectionHandler";
 import { updatePlayerCoinsHandler } from "./handlers/playerHandler";
-import { getRoomInfoHandler, updateBetHadnler } from "./handlers/roomHandler";
+import { getRoomInfoHandler, joinRoomHandler, updateBetHadnler } from "./handlers/roomHandler";
 
 export const socketServer = (io: Server): void => {
   io.on("connection", (socket: Socket) => {
@@ -13,9 +13,11 @@ export const socketServer = (io: Server): void => {
     socket.on("updatePlayerCoins", (data) => updatePlayerCoinsHandler(socket, data));
     
     // room 관련
+    socket.on("joinRoom", (data) => joinRoomHandler(socket, data));
     socket.on("getRoomInfo", (data) => getRoomInfoHandler(socket, data));
     socket.on("updateBet", (data) => updateBetHadnler(socket, data));
 
+    // 소켓 연결 종료
     socket.on("disconnect", () => disconnectionHandler(socket));
   });
 };

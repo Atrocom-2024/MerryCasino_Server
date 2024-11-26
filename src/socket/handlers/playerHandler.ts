@@ -5,7 +5,7 @@ import { Player } from "../../models/player";
 
 // 리팩토링 필요
 export const updatePlayerCoinsHandler = async (socket: Socket, data: PlayerFields) => {
-  console.log("플레이어 코인 추가 요청 들어옴");
+  console.log("[socket] 플레이어 코인 추가 요청");
 
   if (!data.playerId || typeof data.coins !== "number") {
     socket.emit("updatePlayerCoinsResponse", {
