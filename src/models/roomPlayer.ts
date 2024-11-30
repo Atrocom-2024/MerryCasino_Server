@@ -3,7 +3,8 @@ import {
   Column,
   PrimaryGeneratedColumn,
   CreateDateColumn,
-  ManyToOne
+  ManyToOne,
+  JoinColumn
 } from "typeorm";
 
 import { Player } from "./player";
@@ -20,7 +21,7 @@ export class RoomPlayer {
   @Column({ name: 'room_id' })
   roomId!: number; // 배팅이 발생한 룸 ID
 
-  @Column({ name: 'current_payout', default: 0.00 })
+  @Column({ name: 'current_payout', type: 'decimal', precision: 5, scale: 2, default: 0.00 })
   currentPayout!: number;
 
   @Column({ name: 'bet_amount', default: 0 })
@@ -29,11 +30,13 @@ export class RoomPlayer {
   @CreateDateColumn({ name: 'update_at', type:'timestamp' })
   updateAt!: Date; // 배팅 시간
 
-  // 유저와의 관계 설정 (ManyToOne)
-  @ManyToOne(() => Player, (player) => player.id, { onDelete: 'CASCADE' })
+  // Player와의 관계 설정
+  @ManyToOne(() => Player, (player) => player.roomPlayer, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id' }) // 이 부분이 중요한데, 데이터베이스 컬럼명과 맞춰야 합니다
   player!: Player;
 
-  // 룸과의 관계 설정 (ManyToOne)
-  @ManyToOne(() => Room, (room) => room.roomId, { onDelete: 'CASCADE' })
+  // Room과의 관계 설정 (room_id)
+  @ManyToOne(() => Room, (room) => room.roomPlayers, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'room_id' }) // room_id를 외래 키로 설정
   room!: Room;
 }

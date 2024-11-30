@@ -1,8 +1,4 @@
-import { MyDataSource } from "../../config/data-source";
-import { Room } from "../../models/room";
-import { RoomPlayer } from "../../models/roomPlayer";
-
-export const calcPayout = async (data: CalcPayoutFields) => {
+export const calcPayout = (data: CalcPayoutFields) => {
   console.log("Payout 계산됨");
 
   const adjustedProb = ((data.targetPayout - data.currentPayout) / 2);
