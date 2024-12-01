@@ -1,4 +1,5 @@
 import { Repository } from "typeorm";
+
 import { Room } from "../models/room";
 import { Player } from "../models/player";
 import { RoomPlayer } from "../models/roomPlayer";
@@ -16,8 +17,8 @@ export async function getRoom(roomRepository: Repository<Room>, roomId: number) 
   return room;
 }
 
-export async function getRoomPlayer(roomPlayerRepository: Repository<RoomPlayer>, userId: string) {
-  const roomPlayer = await roomPlayerRepository.findOneBy({ userId });
+export async function getRoomPlayer(roomPlayerRepository: Repository<RoomPlayer>, userId: string, roomId: number) {
+  const roomPlayer = await roomPlayerRepository.findOneBy({ userId, roomId });
   if (!roomPlayer) throw new Error("RoomPlayer not found");
   return roomPlayer;
 }

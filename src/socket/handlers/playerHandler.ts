@@ -2,28 +2,24 @@ import { Socket } from "socket.io";
 
 import { MyDataSource } from "../../config/data-source";
 import { Player } from "../../models/player";
+import { emitError, emitSuccess, handleError } from "./responseHandler";
+import { getPlayer } from "../../utils/dataLoader";
 
 // 리팩토링 필요
 export const updatePlayerCoinsHandler = async (socket: Socket, data: PlayerFields) => {
   console.log("[socket] 플레이어 코인 추가 요청");
 
   if (!data.playerId || typeof data.coins !== "number") {
-    socket.emit("updatePlayerCoinsResponse", {
-      status: 400,
-      message: "Invalid playerId or coins value in request body",
-    });
+    emitError(socket, "updatePlayerCoinsResponse", 400, "Invalid playerId or coins value in request body");
     return;
   }
 
   try {
     const playerRepository = MyDataSource.getRepository(Player);
-    const player = await playerRepository.findOneBy({ id: data.playerId });
+    const player = await getPlayer(playerRepository, data.playerId)
 
     if (!player) {
-      socket.emit("updatePlayerCoinsResponse", {
-        status: 404,
-        message: "Player not found",
-      });
+      emitError(socket, "updatePlayerCoinsResponse", 404, "Player not found");
       return;
     }
 
@@ -33,17 +29,15 @@ export const updatePlayerCoinsHandler = async (socket: Socket, data: PlayerField
     // Save the updated player data
     await playerRepository.save(player);
 
-    socket.emit("updatePlayerCoinsResponse", {
+    emitSuccess(socket, "updatePlayerCoinsResponse", {
       status: 200,
       message: `Successfully added ${data.coins} coins to player.`,
       updatedCoins: player.coins,
     });
+    return;
   } catch (error) {
-    console.error("Error adding coins to player:", error);
-    socket.emit("updatePlayerCoinsResponse", {
-      status: 500,
-      message: "An error occurred while adding coins to the player.",
-    });
+    handleError(socket, error, "updatePlayerCoinsResponse");
+    return;
   }
 };
 

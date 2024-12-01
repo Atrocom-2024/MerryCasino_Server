@@ -6,16 +6,14 @@ import { Room } from "../../models/room";
 import { RoomPlayer } from "../../models/roomPlayer";
 import { calcPayout } from "../services/roomService";
 import { getPlayer, getRoom, getRoomPlayer } from "../../utils/dataLoader";
+import { emitError, emitSuccess, handleError } from "./responseHandler";
+import { createRoomPlayer } from "../services/roomPlayerService";
 
-// TODO: 처음 조인할 때 payout이 제대로 반영되지 않는 문제 해결
 export const joinRoomHandler = async (socket: Socket, data: JoinRoomFields) => {
   console.log("[socket] 룸 조인");
 
   if ((!data.roomId && data.roomId != 0) || !data.userId) {
-    socket.emit("joinRoomResponse", {
-      status: 400,
-      message: "Invalid roomId value in request body",
-    });
+    emitError(socket, "joinRoomResponse", 400, "Invalid roomId value in request body");
     return;
   }
 
@@ -27,38 +25,31 @@ export const joinRoomHandler = async (socket: Socket, data: JoinRoomFields) => {
     roomInfo.totalUser += 1;
     await roomRepository.save(roomInfo);
 
-    // 룸 유저 테이블에 추가
     const existingRoomPlayer = await roomPlayerRepository.findOneBy({ userId: data.userId, roomId: data.roomId });
 
     // 유저가 룸에 처음 접속했을 때
     if (!existingRoomPlayer) {
-      const newRoomPlayer = new RoomPlayer();
-      newRoomPlayer.userId = data.userId;
-      newRoomPlayer.roomId = data.roomId;
-      await roomPlayerRepository.save(newRoomPlayer); // 저장
-
-      const savedRoomPlayer = await roomPlayerRepository.findOneBy({ userId: data.userId, roomId: data.roomId });
-      socket.emit("joinRoomResponse", {
+      // 룸 유저 테이블에 추가
+      const savedRoomPlayer = await createRoomPlayer(roomPlayerRepository, data.userId, data.roomId);
+      emitSuccess(socket, "joinRoomResponse", {
         status: 200,
         message: `Successfully joined ${data.roomId}.`,
         roomInfo,
-        roomPlayerInfo: savedRoomPlayer
+        roomPlayerInfo: savedRoomPlayer,
       });
       return;
     }
 
-    socket.emit("joinRoomResponse", {
+    emitSuccess(socket, "joinRoomResponse", {
       status: 200,
       message: `Successfully joined ${data.roomId}.`,
       roomInfo,
       roomPlayerInfo: existingRoomPlayer
     });
+    return;
   } catch (error) {
-    console.error("Error in joinRoomHandler:", error);
-    socket.emit("joinRoomResponse", {
-      status: 500,
-      message: "An error occurred while joining the room.",
-    });
+    handleError(socket, error, "joinRoomResponse");
+    return;
   }
 }
 
@@ -66,10 +57,7 @@ export const getRoomInfoHandler = async (socket: Socket, data: GetRoomFields) =>
   console.log("[socket] 룸 정보 요청");
 
   if (!data.roomId && data.roomId != 0) {
-    socket.emit("getRoomInfoResponse", {
-      status: 400,
-      message: "Invalid roomId value in request body",
-    });
+    emitError(socket, "getRoomInfoResponse", 400, "Invalid roomId value in request body");
     return;
   }
 
@@ -77,17 +65,15 @@ export const getRoomInfoHandler = async (socket: Socket, data: GetRoomFields) =>
     const roomRepository = MyDataSource.getRepository(Room);
     const roomInfo = await getRoom(roomRepository, data.roomId);
 
-    socket.emit("getRoomInfoResponse", {
+    emitSuccess(socket, "getRoomInfoResponse", {
       status: 200,
       message: `Successfully fetched room ${data.roomId} info.`,
       roomInfo
     });
+    return;
   } catch (error) {
-    console.error("Error in getRoomInfoHandler:", error);
-    socket.emit("getRoomInfoResponse", {
-      status: 500,
-      message: "An error occurred while fetching room info.",
-    });
+    handleError(socket, error, "getRoomInfoResponse");
+    return;
   }
 }
 
@@ -95,10 +81,7 @@ export const updateBetHadnler = async (socket: Socket, data: UpdateBetFields) =>
   console.log("[socket] 배팅 요청");
 
   if (!data.userId || !data.roomId || !data.betAmount) {
-    socket.emit("updateBetResponse", {
-      status: 400,
-      message: "Invalid userId or coins value in request body",
-    });
+    emitError(socket, "updateBetResponse", 400, "Invalid userId or coins value in request body");
     return;
   }
 
@@ -109,7 +92,7 @@ export const updateBetHadnler = async (socket: Socket, data: UpdateBetFields) =>
 
     const player = await getPlayer(playerRepository, data.userId);
     const roomInfo = await getRoom(roomRepository, data.roomId);
-    const roomPlayer = await getRoomPlayer(roomPlayerRepository, data.userId);
+    const roomPlayer = await getRoomPlayer(roomPlayerRepository, data.userId, data.roomId);
 
     // 배팅 로직
     roomPlayer.betAmount -= data.betAmount;
@@ -132,18 +115,16 @@ export const updateBetHadnler = async (socket: Socket, data: UpdateBetFields) =>
     await playerRepository.save(player);
     await roomPlayerRepository.save(roomPlayer);
 
-    socket.emit("updateBetResponse", {
+    emitSuccess(socket, "updateBetResponse", {
       status: 200,
       message: `Successfully updated ${data.betAmount} coins.`,
       updatedCoins: player.coins,
       updatedPayout: updatedPayout
     });
+    return;
   } catch (error) {
-    console.error("Error in updateBetHandler:", error);
-    socket.emit("updateBetResponse", {
-      status: 500,
-      message: "An error occurred while updating the bet.",
-    });
+    handleError(socket, error, "updateBetResponse");
+    return;
   }
 }
 
