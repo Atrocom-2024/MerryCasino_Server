@@ -28,19 +28,30 @@ export const joinRoomHandler = async (socket: Socket, data: JoinRoomFields) => {
     await roomRepository.save(roomInfo);
 
     // 룸 유저 테이블에 추가
-    const existingRoomPlayer = await roomPlayerRepository.findOneBy({ userId: data.userId });
+    const existingRoomPlayer = await roomPlayerRepository.findOneBy({ userId: data.userId, roomId: data.roomId });
 
+    // 유저가 룸에 처음 접속했을 때
     if (!existingRoomPlayer) {
       const newRoomPlayer = new RoomPlayer();
       newRoomPlayer.userId = data.userId;
       newRoomPlayer.roomId = data.roomId;
       await roomPlayerRepository.save(newRoomPlayer); // 저장
+
+      const savedRoomPlayer = await roomPlayerRepository.findOneBy({ userId: data.userId, roomId: data.roomId });
+      socket.emit("joinRoomResponse", {
+        status: 200,
+        message: `Successfully joined ${data.roomId}.`,
+        roomInfo,
+        roomPlayerInfo: savedRoomPlayer
+      });
+      return;
     }
 
     socket.emit("joinRoomResponse", {
       status: 200,
       message: `Successfully joined ${data.roomId}.`,
-      roomInfo
+      roomInfo,
+      roomPlayerInfo: existingRoomPlayer
     });
   } catch (error) {
     console.error("Error in joinRoomHandler:", error);
