@@ -25,12 +25,21 @@ export const joinRoomHandler = async (socket: Socket, data: JoinRoomFields) => {
     roomInfo.totalUser += 1;
     await roomRepository.save(roomInfo);
 
+    // 방에 소켓 추가
+    socket.join(`room-${data.roomId.toString()}`);
+
     const existingRoomPlayer = await roomPlayerRepository.findOneBy({ userId: data.userId, roomId: data.roomId });
 
     // 유저가 룸에 처음 접속했을 때
     if (!existingRoomPlayer) {
       // 룸 유저 테이블에 추가
       const savedRoomPlayer = await createRoomPlayer(roomPlayerRepository, data.userId, data.roomId);
+
+      // 같은 방의 사용자에게 데이터 전송
+      socket.to(`room-${data.roomId.toString()}`).emit("roomPlayerAdd", {
+        message: `Player joined the room.`,
+      });
+
       emitSuccess(socket, "joinRoomResponse", {
         status: 200,
         message: `Successfully joined ${data.roomId}.`,
@@ -39,6 +48,11 @@ export const joinRoomHandler = async (socket: Socket, data: JoinRoomFields) => {
       });
       return;
     }
+
+    // 같은 방의 사용자에게 데이터 전송
+    socket.to(`room-${data.roomId.toString()}`).emit("roomPlayerAdd", {
+      message: `Player joined the room.`,
+    });
 
     emitSuccess(socket, "joinRoomResponse", {
       status: 200,
@@ -52,6 +66,37 @@ export const joinRoomHandler = async (socket: Socket, data: JoinRoomFields) => {
     return;
   }
 }
+
+export const leaveRoomHandler = async (socket: Socket, data: JoinRoomFields) => {
+  console.log("[socket] 룸 나가기");
+
+  if (!data.roomId || !data.userId) {
+    emitError(socket, "leaveRoomResponse", 400, "Invalid roomId or userId value in request body");
+    return;
+  }
+
+  try {
+    const roomRepository = MyDataSource.getRepository(Room);
+    const roomPlayerRepository = MyDataSource.getRepository(RoomPlayer);
+
+    const roomInfo = await getRoom(roomRepository, data.roomId);
+
+    // 방 정보 업데이트
+    roomInfo.totalUser = Math.max(0, roomInfo.totalUser - 1);
+    await roomRepository.save(roomInfo);
+
+    // 소켓에서 사용자 제거
+    socket.leave(`room-${data.roomId.toString()}`);
+
+    emitSuccess(socket, "leaveRoomResponse", {
+      status: 200,
+      message: `Successfully left room ${data.roomId}.`,
+    });
+  } catch (error) {
+    handleError(socket, error, "leaveRoomResponse");
+    return;
+  }
+};
 
 export const getRoomInfoHandler = async (socket: Socket, data: GetRoomFields) => {
   console.log("[socket] 룸 정보 요청");
