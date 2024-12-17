@@ -15,6 +15,7 @@ export const createRoomPlayer = async (roomPlayerRepository: Repository<RoomPlay
   return savedPlayer;
 }
 
+// 실시간 유저 Payout 계산 구현중
 // 모든 사용자에 대해 Payout을 재계산하고 결과를 전송
 // export const recalculatePayoutForRoom = async (io: Socket, roomId: number) => {
 //   try {
