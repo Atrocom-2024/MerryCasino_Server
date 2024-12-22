@@ -1,17 +1,19 @@
-export const calcPayout = (data: CalcPayoutFields) => {
-  console.log("Payout 계산됨");
+import { getRoomRepository } from "../../repository/roomRepository";
+import { getRoom } from "../../utils/dataLoader";
 
-  const adjustedProb = ((data.targetPayout - data.currentPayout) / 2);
-  const part_A = (adjustedProb * (data.totalBet / data.maxBet) + adjustedProb * (data.totalUser / data.maxUser));
+export const increaseUserCountService = async (roomId: number) => {
+  const roomRepository = getRoomRepository();
+  const roomInfo = await getRoom(roomRepository, roomId);
 
-  return part_A;
+  roomInfo.totalUser += 1;
+  await roomRepository.save(roomInfo);
+
+  return;
 }
 
-interface CalcPayoutFields {
-  currentPayout: number;
-  targetPayout: number;
-  totalBet: number;
-  totalUser: number;
-  maxBet: number;
-  maxUser: number;
+export const roomInfoService = async (roomId: number) => {
+  const roomRepository = getRoomRepository();
+  const roomInfo = await getRoom(roomRepository, roomId);
+
+  return roomInfo;
 }

@@ -1,9 +1,10 @@
 import { Socket } from "socket.io";
 
-import { MyDataSource } from "../../config/data-source";
-import { Player } from "../../models/player";
 import { emitError, emitSuccess, handleError } from "./responseHandler";
 import { getPlayer } from "../../utils/dataLoader";
+import { getPlayerRepository } from "../../repository/playerRepository";
+import { MyDataSource } from "../../config/data-source";
+import { Player } from "../../models/player";
 
 // 리팩토링 필요
 export const updatePlayerCoinsHandler = async (socket: Socket, data: PlayerFields) => {

@@ -19,7 +19,7 @@ export const createPlayer = async (req: Request, res: Response) => {
   const newPlayer = new Player(); // 새 엔티티 인스턴스 생성
   newPlayer.id = req.body.id;
   newPlayer.userName = username;
-  newPlayer.coins = req.body.coins || 0;
+  newPlayer.coins = 1000000;
   newPlayer.provider = 'guest';
 
   await playerRepository.save(newPlayer); // 저장

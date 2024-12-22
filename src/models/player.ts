@@ -9,7 +9,7 @@ export class Player {
   @Column({ name: 'username' })
   userName!: string;
 
-  @Column({ name: 'coins', default: 0 })
+  @Column({ name: 'coins' })
   coins!: number;
 
   @Column({ name: 'level', default: 1 })

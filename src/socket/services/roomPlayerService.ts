@@ -1,19 +1,69 @@
-import { Repository } from "typeorm";
-
 import { RoomPlayer } from "../../models/roomPlayer";
-import { calcPayout } from "./roomService";
-import { Socket } from "socket.io";
-import { MyDataSource } from "../../config/data-source";
-import { Room } from "../../models/room";
-import { getRoom, getRoomPlayer } from "../../utils/dataLoader";
+import { getPlayer, getRoom, getRoomPlayer } from "../../utils/dataLoader";
+import { getPlayerRepository } from "../../repository/playerRepository";
+import { getRoomRepository } from "../../repository/roomRepository";
+import { getRoomPlayerRepository } from "../../repository/roomPlayerRepository";
 
-export const createRoomPlayer = async (roomPlayerRepository: Repository<RoomPlayer>, userId: string, roomId: number) => {
+export const existingRoomPlayer = async (userId: string, roomId: number) => {
+  const roomPlayerRepository = getRoomPlayerRepository();
+  const roomPlayer = await roomPlayerRepository.findOneBy({ userId, roomId });
+
+  return roomPlayer;
+}
+
+export const createRoomPlayer = async (userId: string, roomId: number) => {
+  const roomPlayerRepository = getRoomPlayerRepository();
+  
   const newRoomPlayer = new RoomPlayer();
   newRoomPlayer.userId = userId;
   newRoomPlayer.roomId = roomId;
   const savedPlayer = await roomPlayerRepository.save(newRoomPlayer); // 저장
   return savedPlayer;
 }
+
+export const calcPayoutService = async (data: UpdateBetFields) => {
+  console.log("[socket] Payout 계산 시작");
+  
+  const playerRepository = getPlayerRepository();
+  const roomRepository = getRoomRepository();
+  const roomPlayerRepository = getRoomPlayerRepository();
+
+  const [player, roomInfo, roomPlayer] = await Promise.all([
+    getPlayer(playerRepository, data.userId),
+    getRoom(roomRepository, data.roomId),
+    getRoomPlayer(roomPlayerRepository, data.userId, data.roomId)
+  ]);
+
+  roomPlayer.betAmount -= data.betAmount;
+  const calcField = {
+    currentPayout: roomPlayer.currentPayout,
+    targetPayout: roomInfo.targetPayout,
+    totalBet: roomPlayer.betAmount,
+    totalUser: roomInfo.totalUser,
+    maxBet: roomInfo.maxBet,
+    maxUser: roomInfo.maxUser
+  };
+  
+  const adjustedProb = ((calcField.targetPayout - calcField.currentPayout) / 2);
+  const part_A = (adjustedProb * (calcField.totalBet / calcField.maxBet) + adjustedProb * (calcField.totalUser / calcField.maxUser));
+
+  player.coins += data.betAmount;
+  roomPlayer.currentPayout = part_A;
+
+  console.log(`현재 ${data.roomId}번 방의 payout: ${part_A}`);
+
+  // Save the updated data
+  await Promise.all([playerRepository.save(player), roomPlayerRepository.save(roomPlayer)]);
+
+  return { updatedPayout: part_A, updatedCoins: player.coins };
+}
+
+interface UpdateBetFields {
+  userId: string;
+  roomId: number;
+  betAmount: number;
+}
+
 
 // 실시간 유저 Payout 계산 구현중
 // 모든 사용자에 대해 Payout을 재계산하고 결과를 전송

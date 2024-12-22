@@ -1,13 +1,8 @@
 import { Socket } from "socket.io";
 
-import { MyDataSource } from "../../config/data-source";
-import { Player } from "../../models/player";
-import { Room } from "../../models/room";
-import { RoomPlayer } from "../../models/roomPlayer";
-import { calcPayout } from "../services/roomService";
-import { getPlayer, getRoom, getRoomPlayer } from "../../utils/dataLoader";
 import { emitError, emitSuccess, handleError } from "./responseHandler";
-import { createRoomPlayer } from "../services/roomPlayerService";
+import { increaseUserCountService, roomInfoService } from "../services/roomService";
+import { createRoomPlayer, existingRoomPlayer, calcPayoutService } from "../services/roomPlayerService";
 
 export const joinRoomHandler = async (socket: Socket, data: JoinRoomFields) => {
   console.log("[socket] 룸 조인");
@@ -18,22 +13,17 @@ export const joinRoomHandler = async (socket: Socket, data: JoinRoomFields) => {
   }
 
   try {
-    const roomRepository = MyDataSource.getRepository(Room);
-    const roomPlayerRepository = MyDataSource.getRepository(RoomPlayer);
-
-    const roomInfo = await getRoom(roomRepository, data.roomId);
-    roomInfo.totalUser += 1;
-    await roomRepository.save(roomInfo);
+    increaseUserCountService(data.roomId);
 
     // 방에 소켓 추가
     socket.join(`room-${data.roomId.toString()}`);
 
-    const existingRoomPlayer = await roomPlayerRepository.findOneBy({ userId: data.userId, roomId: data.roomId });
+    const existedRoomPlayer = await existingRoomPlayer(data.userId, data.roomId);
 
     // 유저가 룸에 처음 접속했을 때
     if (!existingRoomPlayer) {
       // 룸 유저 테이블에 추가
-      const savedRoomPlayer = await createRoomPlayer(roomPlayerRepository, data.userId, data.roomId);
+      const savedRoomPlayer = await createRoomPlayer(data.userId, data.roomId);
 
       // 같은 방의 사용자에게 데이터 전송
       socket.to(`room-${data.roomId.toString()}`).emit("roomPlayerAdd", {
@@ -43,7 +33,6 @@ export const joinRoomHandler = async (socket: Socket, data: JoinRoomFields) => {
       emitSuccess(socket, "joinRoomResponse", {
         status: 200,
         message: `Successfully joined ${data.roomId}.`,
-        roomInfo,
         roomPlayerInfo: savedRoomPlayer,
       });
       return;
@@ -57,8 +46,7 @@ export const joinRoomHandler = async (socket: Socket, data: JoinRoomFields) => {
     emitSuccess(socket, "joinRoomResponse", {
       status: 200,
       message: `Successfully joined ${data.roomId}.`,
-      roomInfo,
-      roomPlayerInfo: existingRoomPlayer
+      roomPlayerInfo: existedRoomPlayer
     });
     return;
   } catch (error) {
@@ -76,15 +64,6 @@ export const leaveRoomHandler = async (socket: Socket, data: JoinRoomFields) => 
   }
 
   try {
-    const roomRepository = MyDataSource.getRepository(Room);
-    const roomPlayerRepository = MyDataSource.getRepository(RoomPlayer);
-
-    const roomInfo = await getRoom(roomRepository, data.roomId);
-
-    // 방 정보 업데이트
-    roomInfo.totalUser = Math.max(0, roomInfo.totalUser - 1);
-    await roomRepository.save(roomInfo);
-
     // 소켓에서 사용자 제거
     socket.leave(`room-${data.roomId.toString()}`);
 
@@ -107,8 +86,7 @@ export const getRoomInfoHandler = async (socket: Socket, data: GetRoomFields) =>
   }
 
   try {
-    const roomRepository = MyDataSource.getRepository(Room);
-    const roomInfo = await getRoom(roomRepository, data.roomId);
+    const roomInfo = await roomInfoService(data.roomId);
 
     emitSuccess(socket, "getRoomInfoResponse", {
       status: 200,
@@ -131,39 +109,12 @@ export const updateBetHadnler = async (socket: Socket, data: UpdateBetFields) =>
   }
 
   try {
-    const playerRepository = MyDataSource.getRepository(Player);
-    const roomRepository = MyDataSource.getRepository(Room);
-    const roomPlayerRepository = MyDataSource.getRepository(RoomPlayer);
-
-    const player = await getPlayer(playerRepository, data.userId);
-    const roomInfo = await getRoom(roomRepository, data.roomId);
-    const roomPlayer = await getRoomPlayer(roomPlayerRepository, data.userId, data.roomId);
-
-    // 배팅 로직
-    roomPlayer.betAmount -= data.betAmount;
-    const calcField = {
-      currentPayout: roomPlayer.currentPayout,
-      targetPayout: roomInfo.targetPayout,
-      totalBet: roomPlayer.betAmount,
-      totalUser: roomInfo.totalUser,
-      maxBet: roomInfo.maxBet,
-      maxUser: roomInfo.maxUser
-    }
-    const updatedPayout = calcPayout(calcField);
-
-    player.coins += data.betAmount;
-    roomPlayer.currentPayout = updatedPayout;
-
-    console.log(`현재 ${data.roomId}번 방의 payout: ${updatedPayout}`);
-
-    // Save the updated data
-    await playerRepository.save(player);
-    await roomPlayerRepository.save(roomPlayer);
+    const { updatedPayout, updatedCoins } = await calcPayoutService(data);
 
     emitSuccess(socket, "updateBetResponse", {
       status: 200,
       message: `Successfully updated ${data.betAmount} coins.`,
-      updatedCoins: player.coins,
+      updatedCoins: updatedCoins,
       updatedPayout: updatedPayout
     });
     return;
@@ -187,3 +138,4 @@ interface UpdateBetFields {
   roomId: number;
   betAmount: number;
 }
+
