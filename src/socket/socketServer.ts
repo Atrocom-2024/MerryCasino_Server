@@ -9,6 +9,12 @@ export const socketServer = (io: Server): void => {
     connectionHandler(socket);
     // 소켓에 연결 될 때 해당 룸에 user 카운팅 필요
 
+    // test 이벤트
+    socket.on("ping", (data) => {
+      console.log('Ping received: ', data);
+      socket.emit('pong', 'test received');
+    });
+
     // player 관련
     socket.on("updatePlayerCoins", (data) => updatePlayerCoinsHandler(socket, data));
     
