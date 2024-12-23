@@ -20,12 +20,13 @@ const io = new Server(httpServer, {
   cors: {
     origin: '*',
     methods: ['GET', 'POST', 'PATCH']
-  }
+  },
+  transports: ['websocket']
 });
 
 const startServer = async () => {
   try {
-    // 데이터베이스 연결
+    // 데이터베이스 연결 - 데이터베이스 초기화 후에 실행
     await MyDataSource.initialize();
     console.log('MySQL 데이터베이스 연결 성공');
 
@@ -34,7 +35,7 @@ const startServer = async () => {
     app.use('/api/players', playerRoutes);
     app.use('/api/rooms', roomRoutes);
 
-    // Socket.IO 컨트롤러 설정 - 데이터베이스 초기화 후에 실행
+    // Socket.IO 컨트롤러 설정 
     socketServer(io);
 
     // 서버 시작
