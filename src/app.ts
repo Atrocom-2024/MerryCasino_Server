@@ -5,6 +5,7 @@ import { Server } from 'socket.io';
 
 import { MyDataSource } from './config/data-source';
 import { config } from './config/config';
+import healthcheckRoutes from './web/routes/healthcheckRoutes';
 import playerRoutes from './web/routes/playerRoutes';
 import roomRoutes from './web/routes/roomRoutes';
 import { socketServer } from './socket/socketServer';
@@ -29,6 +30,7 @@ const startServer = async () => {
     console.log('MySQL 데이터베이스 연결 성공');
 
     // 라우트 설정
+    app.use('/healthcheck', healthcheckRoutes);
     app.use('/api/players', playerRoutes);
     app.use('/api/rooms', roomRoutes);
 
